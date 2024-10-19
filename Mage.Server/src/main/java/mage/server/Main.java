@@ -5,6 +5,8 @@ import mage.cards.RateCard;
 import mage.cards.Sets;
 import mage.cards.decks.DeckValidatorFactory;
 import mage.cards.repository.*;
+import mage.extensions.ExtensionPackage;
+import mage.extensions.ExtensionPackageLoader;
 import mage.game.match.MatchType;
 import mage.game.tournament.TournamentType;
 import mage.interfaces.MageServer;
@@ -19,7 +21,7 @@ import mage.server.record.UserStatsRepository;
 import mage.server.tournament.TournamentFactory;
 import mage.server.util.ConfigFactory;
 import mage.server.util.ConfigWrapper;
-import mage.server.util.PluginClassLoader;
+import mage.extensions.PluginClassLoader;
 import mage.server.util.ServerMessagesUtil;
 import mage.server.util.config.GamePlugin;
 import mage.server.util.config.Plugin;
@@ -138,7 +140,7 @@ public final class Main {
         final ConfigWrapper config = new ConfigWrapper(ConfigFactory.loadFromFile(configPath));
 
 
-        if (config.isAuthenticationActivated()) {
+        if (config.isRegistrationEnabled() || config.shouldCheckUsers()) {
             logger.info("Check authorized user DB version ...");
             if (!AuthorizedUserRepository.getInstance().checkAlterAndMigrateAuthorizedUser()) {
                 logger.fatal("Failed to start server.");
@@ -260,8 +262,8 @@ public final class Main {
         logger.info("Config - max pool size   : " + config.getMaxPoolSize());
         logger.info("Config - num accp.threads: " + config.getNumAcceptThreads());
         logger.info("Config - second.bind port: " + config.getSecondaryBindPort());
-        logger.info("Config - users registr.:   " + (config.isAuthenticationActivated() ? "true" : "false"));
-        logger.info("Config - users anon:       " + (!config.isAuthenticationActivated() ? "true" : "false"));
+        logger.info("Config - registration enabled.:   " + (config.isRegistrationEnabled() ? "true" : "false"));
+        logger.info("Config - check users:       " + (config.shouldCheckUsers() ? "true" : "false"));
         logger.info("Config - mailgun api key : " + config.getMailgunApiKey());
         logger.info("Config - mailgun domain  : " + config.getMailgunDomain());
         logger.info("Config - mail smtp Host  : " + config.getMailSmtpHost());

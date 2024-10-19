@@ -1,11 +1,14 @@
 package mage.client;
 
 import mage.MageException;
+import mage.cards.ExpansionSet;
 import mage.cards.RateCard;
+import mage.cards.Sets;
 import mage.cards.action.ActionCallback;
 import mage.cards.decks.Deck;
 import mage.cards.repository.CardRepository;
 import mage.cards.repository.CardScanner;
+import mage.cards.repository.PluginClassloaderRegistery;
 import mage.cards.repository.RepositoryUtil;
 import mage.client.cards.BigCard;
 import mage.client.chat.ChatPanelBasic;
@@ -39,6 +42,8 @@ import mage.client.util.stats.UpdateMemUsageTask;
 import mage.components.ImagePanel;
 import mage.components.ImagePanelStyle;
 import mage.constants.PlayerAction;
+import mage.extensions.ExtensionPackage;
+import mage.extensions.ExtensionPackageLoader;
 import mage.interfaces.MageClient;
 import mage.interfaces.callback.CallbackClient;
 import mage.interfaces.callback.ClientCallback;
@@ -135,6 +140,8 @@ public class MageFrame extends javax.swing.JFrame implements MageClient {
     private static UpdateMemUsageTask updateMemUsageTask;
 
     private static long startTime;
+
+    private static final File extensionFolder = new File("extensions");
 
     public static JDesktopPane getDesktop() {
         return desktopPane;
@@ -251,6 +258,44 @@ public class MageFrame extends javax.swing.JFrame implements MageClient {
 
         // DATA PREPARE
         RepositoryUtil.bootstrapLocalDb();
+
+        // Extension packages
+        LOGGER.info("Loading extension packages...");
+        if (!extensionFolder.exists()) {
+            if (!extensionFolder.mkdirs()) {
+                LOGGER.error("Could not create extensions directory.");
+            }
+        }
+
+        File[] extensionDirectories = extensionFolder.listFiles();
+        List<ExtensionPackage> extensions = new ArrayList<>();
+        if (extensionDirectories != null) {
+            for (File f : extensionDirectories) {
+                if (f.isDirectory()) {
+                    try {
+                        LOGGER.info(" - Loading extension from " + f);
+                        extensions.add(ExtensionPackageLoader.loadExtension(f));
+                    } catch (IOException e) {
+                        LOGGER.error("Could not load extension in " + f + '!', e);
+                    }
+                }
+            }
+        }
+        LOGGER.info("Done.");
+
+        if (!extensions.isEmpty()) {
+            LOGGER.info("Registering custom sets...");
+            for (ExtensionPackage pkg : extensions) {
+                for (ExpansionSet set : pkg.getSets()) {
+                    LOGGER.info("- Loading " + set.getName() + " (" + set.getCode() + ')');
+                    Sets.getInstance().addSet(set);
+                }
+                PluginClassloaderRegistery.registerPluginClassloader(pkg.getClassLoader());
+            }
+            LOGGER.info("Done.");
+        }
+
+
         // re-create database on empty (e.g. after new build cleaned db on startup)
         if (RepositoryUtil.CARD_DB_RECREATE_BY_CLIENT_SIDE && RepositoryUtil.isDatabaseEmpty()) {
             LOGGER.info("DB: creating cards database (it can take few minutes)...");

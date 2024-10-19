@@ -1,6 +1,4 @@
-
-
-package mage.server;
+package mage.extensions;
 
 import mage.cards.ExpansionSet;
 

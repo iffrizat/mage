@@ -30,7 +30,7 @@ import mage.server.game.GameFactory;
 import mage.server.managers.ConfigSettings;
 import mage.server.util.ConfigFactory;
 import mage.server.util.ConfigWrapper;
-import mage.server.util.PluginClassLoader;
+import mage.extensions.PluginClassLoader;
 import mage.server.util.config.GamePlugin;
 import mage.server.util.config.Plugin;
 import mage.target.TargetPermanent;

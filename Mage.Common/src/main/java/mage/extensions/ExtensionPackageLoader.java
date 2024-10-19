@@ -1,8 +1,8 @@
 
 
-package mage.server;
+package mage.extensions;
 
-import mage.server.util.PluginClassLoader;
+import mage.extensions.PluginClassLoader;
 import mage.util.StreamUtils;
 
 import java.io.File;
